@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRISM — Predictive Revenue Intelligence for Smart Multi-venue Management</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:       #0D1B2A;
+  --ink-mid:   #1E3A52;
+  --ink-lt:    #2E4F6A;
+  --paper:     #F8F8F6;
+  --paper-2:   #F1F0EC;
+  --white:     #FFFFFF;
+  --border:    #D8D5CE;
+  --border-lt: #E8E6E1;
+  --muted:     #6A7A8A;
+  --gold:      #B8901E;
+  --gold-lt:   #E8C558;
+  --purple:    #4A3E9A;
+  --teal:      #1A7A72;
+  --coral:     #B03A2E;
+  --blue:      #1A5FA8;
+  --green:     #1A7A40;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13.5px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── HEADER ───────────────────────────────────────────────────── */
+.header {
+  background: var(--ink);
+  padding: 28px 40px 24px;
+  border-bottom: 2px solid var(--gold);
+}
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 10px;
+}
+.prism-logo {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.header-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #FFFFFF;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+.header-sub {
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 5px;
+  letter-spacing: 0.02em;
+}
+.header-meta {
+  text-align: right;
+  flex-shrink: 0;
+}
+.header-meta .author {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.7;
+}
+.header-meta .competition {
+  font-size: 11px;
+  color: var(--gold);
+  margin-top: 2px;
+  letter-spacing: 0.03em;
+}
+
+/* ── INSTRUCTION STRIP ────────────────────────────────────────── */
+.instruction-strip {
+  background: var(--ink-mid);
+  padding: 12px 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.instr-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 700;
+}
+.instr-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.6;
+  max-width: 900px;
+}
+.instr-text strong {
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+}
+
+/* ── NAV TABS ─────────────────────────────────────────────────── */
+.nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  gap: 2px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.nav-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 14px 18px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.nav-tab:hover { color: var(--ink); border-bottom-color: var(--border); }
+.nav-tab.on { color: var(--ink); border-bottom-color: var(--gold); font-weight: 600; }
+.nav-hint {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+
+/* ── LAYOUT ───────────────────────────────────────────────────── */
+.page { display: none; padding: 36px 40px; max-width: 1100px; margin: 0 auto; }
+.page.on { display: block; }
+
+.page-intro {
+  margin-bottom: 28px;
+  border-left: 3px solid var(--gold);
+  padding-left: 16px;
+}
+.page-eyebrow {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+.page-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 680px;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ── CONTROLS ─────────────────────────────────────────────────── */
+.control-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+.ctrl-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-lt);
+}
+.ctrl-group { margin-bottom: 16px; }
+.ctrl-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.ctrl-val {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gold);
+  background: var(--paper);
+  padding: 1px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--border-lt);
+  min-width: 44px;
+  text-align: center;
+}
+input[type=range] {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  outline: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 17px; height: 17px;
+  border-radius: 50%;
+  background: var(--white);
+  border: 2.5px solid var(--ink);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  transition: transform 0.1s;
+}
+input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  border-color: var(--gold);
+}
+input[type=range]:focus::-webkit-slider-thumb {
+  border-color: var(--gold);
+}
+
+/* ── FORMULA BOX ──────────────────────────────────────────────── */
+.formula-box {
+  background: var(--ink);
+  color: var(--gold-lt);
+  font-family: 'Courier New', monospace;
+  font-size: 11.5px;
+  line-height: 1.95;
+  padding: 14px 16px;
+  border-radius: 8px;
+  white-space: pre;
+  margin-bottom: 18px;
+  border-left: 3px solid var(--gold);
+  overflow-x: auto;
+}
+.formula-box .dim { color: rgba(255,255,255,0.4); }
+.formula-box .hi { color: #FFFFFF; }
+
+/* ── OUTPUT METRICS ───────────────────────────────────────────── */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+.metric-card {
+  background: var(--paper);
+  border: 1px solid var(--border-lt);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.metric-num {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.1;
+  margin-bottom: 3px;
+  font-family: 'Segoe UI', sans-serif;
+}
+.metric-lbl {
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+/* ── INTERPRETATION BOX ───────────────────────────────────────── */
+.interp-box {
+  margin-top: 14px;
+  padding: 11px 14px;
+  background: var(--paper-2);
+  border: 1px solid var(--border-lt);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.interp-box strong { color: var(--ink); font-weight: 600; }
+
+/* ── CHART CARD ───────────────────────────────────────────────── */
+.chart-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px;
+}
+.chart-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+}
+.chart-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.chart-card-hint {
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ── SEGMENT CARDS ────────────────────────────────────────────── */
+.seg-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.seg-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.seg-body { padding: 12px 14px; }
+.seg-tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+.seg-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.seg-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+.seg-eps {
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.seg-elasticity-label {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-style: italic;
+}
+.seg-footer {
+  padding: 8px 14px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: var(--paper);
+  border-top: 1px solid var(--border-lt);
+}
+
+/* ── VSPSS TWO-CHART GRID ─────────────────────────────────────── */
+.vspss-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.pstar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+.pstar-card {
+  background: var(--paper);
+  border: 1px solid var(--border-lt);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+.pstar-seg { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 3px; }
+.pstar-val { font-size: 18px; font-weight: 600; line-height: 1.1; }
+.pstar-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* ── OPTIMISER GRID ───────────────────────────────────────────── */
+.price-out-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+.price-out-card {
+  background: var(--paper);
+  border: 1px solid var(--border-lt);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+.price-out-seg { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 3px; }
+.price-out-val { font-size: 18px; font-weight: 600; line-height: 1.1; }
+
+/* ── INSTRUCTIONS PANEL ───────────────────────────────────────── */
+.how-to {
+  background: var(--white);
+  border: 1px solid var(--border-lt);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.how-to strong { color: var(--ink); }
+.how-to-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ────────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-top">
+    <div>
+      <div class="prism-logo">PRISM</div>
+      <div class="header-title">Predictive Revenue Intelligence for Smart Multi-venue Management</div>
+      <div class="header-sub">AI-Driven Smart Pricing &amp; Ticketing Strategy Optimisation &nbsp;·&nbsp; Deloitte Digital Elite Challenge 2026</div>
+    </div>
+    <div class="header-meta">
+      <div class="author">
+        Purbasa Bhaduri<br>
+        St. Xavier's University, Kolkata<br>
+        Team B &nbsp;·&nbsp; Mentor: Lennon Cai
+      </div>
+      <div class="competition">Deloitte Digital Elite Challenge 2026</div>
+    </div>
+  </div>
+</header>
+
+<!-- ── INSTRUCTION STRIP ──────────────────────────────────────── -->
+<div class="instruction-strip">
+  <div class="instr-icon">↕</div>
+  <div class="instr-text">
+    <strong>How to use this explorer:</strong>
+    Each tab below represents one mathematical dimension of the PRISM pricing model.
+    Move the sliders on the left to change the input variables — the chart and output cards update in real time, showing exactly how that dimension responds to different conditions.
+    This is not a demonstration; it is the live model. Every curve, number, and threshold you see is computed from the same formula shown in the code block on each tab.
+  </div>
+</div>
+
+<!-- ── NAV ───────────────────────────────────────────────────── -->
+<nav class="nav">
+  <button class="nav-tab on"  onclick="go('tdei',  this)">Dimension 1 &nbsp;—&nbsp; TDEI</button>
+  <button class="nav-tab"     onclick="go('waap',  this)">Dimension 2 &nbsp;—&nbsp; WAAP</button>
+  <button class="nav-tab"     onclick="go('vspss', this)">Dimension 3 &nbsp;—&nbsp; VSPSS</button>
+  <button class="nav-tab"     onclick="go('opt',   this)">Module 2 &nbsp;—&nbsp; Optimiser</button>
+  <div class="nav-hint">Use sliders to interrogate the model</div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════════
+     TAB 1 — TDEI
+════════════════════════════════════════════════════════════ -->
+<div id="p-tdei" class="page on">
+
+  <div class="page-intro">
+    <div class="page-eyebrow">Dimension 1 of 5 &nbsp;·&nbsp; β₁ ≈ 0.38 (highest model weight)</div>
+    <div class="page-title">TDEI — Temporal Demand Elasticity Index</div>
+    <div class="page-desc">
+      Decomposes annual demand into its Fourier components — capturing smooth seasonal waves, holiday proximity spikes, and day-of-week effects.
+      Unlike a calendar lookup table, TDEI produces a <em>continuous score</em> from 0 to 1 that feeds directly into the optimisation engine as a numeric feature.
+      When TDEI exceeds 0.75, surge pricing is triggered. Below 0.35, demand stimulation bundles activate.
+    </div>
+  </div>
+
+  <div class="how-to">
+    <div class="how-to-title">What to try</div>
+    <strong>Annual amplitude (α₁):</strong> Controls the depth of the seasonal wave — high values create a pronounced summer/winter contrast.
+    &nbsp;·&nbsp; <strong>Holiday spike (δ):</strong> How much a public holiday amplifies demand — watch new peaks form at holiday weeks.
+    &nbsp;·&nbsp; <strong>Decay rate (λ):</strong> How quickly the holiday spike falls away — low values spread a holiday's effect over many weeks, high values make it sharp and brief.
+    Observe how the number of <em>surge weeks</em> and <em>stimulation weeks</em> changes — these directly determine how many weeks of the year PRISM operates in premium vs. discount mode.
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="control-panel">
+        <div class="ctrl-section-title">Model Parameters</div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-label">Annual amplitude α₁ <span class="ctrl-val" id="t-a1">0.48</span></div>
+          <input type="range" id="s-a1" min="10" max="85" value="48" step="1" oninput="renderTDEI()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Holiday spike δ <span class="ctrl-val" id="t-d">0.28</span></div>
+          <input type="range" id="s-d" min="5" max="55" value="28" step="1" oninput="renderTDEI()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Decay rate λ <span class="ctrl-val" id="t-l">0.40</span></div>
+          <input type="range" id="s-l" min="10" max="80" value="40" step="1" oninput="renderTDEI()">
+        </div>
+
+        <div class="ctrl-section-title" style="margin-top:18px">Live Outputs</div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-num" id="t-peak" style="color:var(--purple)">—</div>
+            <div class="metric-lbl">Peak score<br>(max TDEI week)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-num" id="t-surge" style="color:var(--gold)">—</div>
+            <div class="metric-lbl">Surge weeks<br>(score &gt; 0.75)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-num" id="t-trough" style="color:var(--blue)">—</div>
+            <div class="metric-lbl">Trough score<br>(min TDEI week)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-num" id="t-stim" style="color:var(--teal)">—</div>
+            <div class="metric-lbl">Stim weeks<br>(score &lt; 0.35)</div>
+          </div>
+        </div>
+
+        <div class="interp-box" id="t-interp">Adjust sliders to see model interpretation.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="chart-card">
+        <div class="chart-card-head">
+          <div class="chart-card-title">52-week TDEI score curve</div>
+          <div class="chart-card-hint">Dashed lines = surge (0.75) and stimulation (0.35) thresholds</div>
+        </div>
+        <canvas id="tdeiC" height="280"></canvas>
+        <div class="formula-box" style="margin-top:18px; margin-bottom:0">
+<span class="hi">TDEI(t)</span> = β₀
+  <span class="dim">+ Σₖ</span> [<span class="hi">αₖ·cos(2πkt/52)</span> + γₖ·sin(2πkt/52)]   <span class="dim">← k harmonics capture annual, semi-annual, quarterly waves</span>
+  <span class="dim">+ Σⱼ</span> <span class="hi">δⱼ · exp(−λ|t − hⱼ|)</span>                        <span class="dim">← exponential decay from each holiday date hⱼ</span>
+  <span class="dim">+</span> φ·DayOfWeek(t) + ε(t)                               <span class="dim">← day-of-week fixed effect + residual</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     TAB 2 — WAAP
+════════════════════════════════════════════════════════════ -->
+<div id="p-waap" class="page">
+
+  <div class="page-intro">
+    <div class="page-eyebrow">Dimension 2 of 5 &nbsp;·&nbsp; β₂ ≈ 0.24</div>
+    <div class="page-title">WAAP — Weather-Adjusted Attendance Probability</div>
+    <div class="page-desc">
+      A logistic regression model that outputs the probability a ticket-holder actually shows up, conditional on weather forecast.
+      The critical innovation is the <em>interaction term</em>: rain probability × outdoor fraction.
+      A 60% rain forecast matters far more for a park that is 85% outdoor rides than one with 30%.
+      WAAP learns the park's own weather sensitivity profile — not generic "rain = bad" logic.
+    </div>
+  </div>
+
+  <div class="how-to">
+    <div class="how-to-title">What to try</div>
+    <strong>Rain probability:</strong> Drag from 0% to 100% and watch P(attend) fall — the rate of fall depends on the outdoor fraction.
+    &nbsp;·&nbsp; <strong>Temperature deviation:</strong> Hot or cold extremes reduce attendance independently of rain.
+    &nbsp;·&nbsp; <strong>Outdoor fraction:</strong> This is the key interaction term — change it from 30% to 85% and observe how the "This park" curve separates from the others on the chart.
+    The pricing action (shown in the interpretation box) switches automatically at P(attend) thresholds of 0.80, 0.60, and 0.40.
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="control-panel">
+        <div class="ctrl-section-title">Weather Conditions</div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-label">Rain probability <span class="ctrl-val" id="w-r">40%</span></div>
+          <input type="range" id="s-r" min="0" max="100" value="40" step="1" oninput="renderWAAP()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Temperature deviation from seasonal mean <span class="ctrl-val" id="w-t">+0°C</span></div>
+          <input type="range" id="s-t" min="-10" max="10" value="0" step="1" oninput="renderWAAP()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Outdoor attraction fraction <span class="ctrl-val" id="w-o">70%</span></div>
+          <input type="range" id="s-o" min="20" max="95" value="70" step="1" oninput="renderWAAP()">
+        </div>
+
+        <div class="ctrl-section-title" style="margin-top:18px">Live Outputs</div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-num" id="w-score" style="color:var(--teal)">—</div>
+            <div class="metric-lbl">P(attend)<br>WAAP score</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-num" id="w-noshow" style="color:var(--coral)">—</div>
+            <div class="metric-lbl">No-show risk<br>1 − P(attend)</div>
+          </div>
+        </div>
+
+        <div class="interp-box" id="w-interp">Adjust sliders to see pricing action.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="chart-card">
+        <div class="chart-card-head">
+          <div class="chart-card-title">P(attend) vs rain probability — by outdoor fraction</div>
+          <div class="chart-card-hint">Temperature fixed at current value · "This park" updates with the slider</div>
+        </div>
+        <canvas id="waapC" height="280"></canvas>
+        <div class="formula-box" style="margin-top:18px; margin-bottom:0">
+<span class="hi">P(attend | weather)</span> = σ( β₀
+  <span class="dim">+</span> β₁·<span class="hi">RainProb</span>
+  <span class="dim">+</span> β₂·TempDeviation
+  <span class="dim">+</span> β₃·<span class="hi">RainProb × OutdoorFrac</span>   <span class="dim">← interaction term: the key innovation</span>
+)
+
+σ = sigmoid  ·  Cross-validated AUC target ≥ 0.82</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     TAB 3 — VSPSS
+════════════════════════════════════════════════════════════ -->
+<div id="p-vspss" class="page">
+
+  <div class="page-intro">
+    <div class="page-eyebrow">Dimension 3 of 5 &nbsp;·&nbsp; β₃ ≈ 0.21</div>
+    <div class="page-title">VSPSS — Visitor Segment Price Sensitivity Score</div>
+    <div class="page-desc">
+      k-means clustering on behavioural features (booking lead time, origin distance, visit frequency, group size) identifies four latent visitor archetypes.
+      A constant-elasticity demand curve is then fit per segment.
+      The result: each segment has its own price elasticity ε and its own revenue-maximising price p*.
+      One uniform price across all segments leaves money on the table from inelastic visitors and drives away elastic ones.
+    </div>
+  </div>
+
+  <div class="how-to" style="max-width:1020px">
+    <div class="how-to-title">What to read here</div>
+    <strong>Left chart (demand curves):</strong> Steeper slope = more elastic = visitor is more sensitive to price increases.
+    Segment A (Pilgrim) barely responds to price — a nearly flat curve.
+    Segment D (Impulse Group) drops sharply — they will leave if priced above their threshold.
+    &nbsp;·&nbsp;
+    <strong>Right chart (revenue curves):</strong> Each segment has a distinct revenue peak — this is p*, the revenue-maximising price for that segment.
+    The wider the spread of p* values across segments, the more value is unlocked by per-segment pricing vs. a single price.
+    The formula below shows how p* is derived directly from ε and marginal cost.
+  </div>
+
+  <div class="seg-grid">
+    <div class="seg-card">
+      <div class="seg-body" style="border-top: 2.5px solid var(--coral)">
+        <div class="seg-tag">Segment A</div>
+        <div class="seg-name">The Pilgrim</div>
+        <div class="seg-desc">Long-distance traveller · 60+ days advance booking · 1st or 2nd visit ever</div>
+        <div class="seg-eps" style="color:var(--coral)">ε = −0.4</div>
+        <div class="seg-elasticity-label">near-inelastic</div>
+      </div>
+      <div class="seg-footer" style="color:var(--coral)">+25–40% above base · upsell premium add-ons</div>
+    </div>
+    <div class="seg-card">
+      <div class="seg-body" style="border-top: 2.5px solid var(--purple)">
+        <div class="seg-tag">Segment B</div>
+        <div class="seg-name">The Planner</div>
+        <div class="seg-desc">Regional family · booked 2–4 weeks ahead · annual or biennial visitor</div>
+        <div class="seg-eps" style="color:var(--purple)">ε = −0.9</div>
+        <div class="seg-elasticity-label">moderately elastic</div>
+      </div>
+      <div class="seg-footer" style="color:var(--purple)">+5–15% above base · bundle add-ons</div>
+    </div>
+    <div class="seg-card">
+      <div class="seg-body" style="border-top: 2.5px solid var(--blue)">
+        <div class="seg-tag">Segment C</div>
+        <div class="seg-name">The Opportunist</div>
+        <div class="seg-desc">Local adult · books &lt;48h in advance · visits 3+ times per year</div>
+        <div class="seg-eps" style="color:var(--blue)">ε = −1.6</div>
+        <div class="seg-elasticity-label">highly elastic</div>
+      </div>
+      <div class="seg-footer" style="color:var(--blue)">Base or −10% · loyalty discount active</div>
+    </div>
+    <div class="seg-card">
+      <div class="seg-body" style="border-top: 2.5px solid var(--green)">
+        <div class="seg-tag">Segment D</div>
+        <div class="seg-name">Impulse Group</div>
+        <div class="seg-desc">School / corporate / youth group · same-day decision · price shared across group</div>
+        <div class="seg-eps" style="color:var(--green)">ε = −2.1</div>
+        <div class="seg-elasticity-label">very elastic · high secondary spend</div>
+      </div>
+      <div class="seg-footer" style="color:var(--green)">Group −20% · F&amp;B package upsell · volume play</div>
+    </div>
+  </div>
+
+  <div class="vspss-charts">
+    <div class="chart-card">
+      <div class="chart-card-head">
+        <div class="chart-card-title">Demand curves — quantity demanded vs ticket price</div>
+      </div>
+      <canvas id="demC" height="240"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-head">
+        <div class="chart-card-title">Revenue curves — total revenue per segment vs price</div>
+        <div class="chart-card-hint">Peak of each curve = p*</div>
+      </div>
+      <canvas id="revSegC" height="240"></canvas>
+      <div class="pstar-grid">
+        <div class="pstar-card"><div class="pstar-seg">Pilgrim p*</div><div class="pstar-val" id="ps-a" style="color:var(--coral)">—</div><div class="pstar-sub">revenue-maximising price</div></div>
+        <div class="pstar-card"><div class="pstar-seg">Planner p*</div><div class="pstar-val" id="ps-b" style="color:var(--purple)">—</div><div class="pstar-sub">revenue-maximising price</div></div>
+        <div class="pstar-card"><div class="pstar-seg">Opportunist p*</div><div class="pstar-val" id="ps-c" style="color:var(--blue)">—</div><div class="pstar-sub">revenue-maximising price</div></div>
+        <div class="pstar-card"><div class="pstar-seg">Impulse p*</div><div class="pstar-val" id="ps-d" style="color:var(--green)">—</div><div class="pstar-sub">revenue-maximising price</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="max-width:520px">
+    <div class="chart-card-head"><div class="chart-card-title">Formula — constant elasticity demand + revenue-maximising price</div></div>
+    <div class="formula-box" style="margin-bottom:0">
+<span class="hi">Q_k(p)</span> = α_k · p^(ε_k)         <span class="dim">← constant elasticity demand curve per segment k</span>
+
+Revenue: <span class="hi">R_k(p)</span> = p · Q_k(p)
+
+Revenue-maximising price:
+  <span class="hi">p*_k</span> = ε_k · MC / (ε_k − 1)    <span class="dim">← derived from dR/dp = 0, where MC = marginal cost</span></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     TAB 4 — OPTIMISER
+════════════════════════════════════════════════════════════ -->
+<div id="p-opt" class="page">
+
+  <div class="page-intro">
+    <div class="page-eyebrow">Module 2 of 3 &nbsp;·&nbsp; Stage 1 → Stage 2 pipeline</div>
+    <div class="page-title">Two-Stage Optimisation Engine</div>
+    <div class="page-desc">
+      Stage 1 uses XGBoost/LightGBM to forecast demand Q(t, k) per time slot per visitor segment, using all five dimension scores as features.
+      Stage 2 takes that forecast as input and solves a constrained non-linear optimisation problem (SLSQP) to find the price vector that maximises total RevPAX —
+      subject to six real-world constraints including market position (CPI), queue experience, price stability, and a segment fairness guardrail.
+    </div>
+  </div>
+
+  <div class="how-to">
+    <div class="how-to-title">What to try</div>
+    <strong>TDEI score:</strong> Drag toward 1.0 to simulate a peak holiday period — watch base price and segment prices rise, and the revenue surface shift right toward a higher optimal price.
+    &nbsp;·&nbsp; <strong>WAAP score:</strong> Drag toward 0 to simulate a heavy rain forecast — prices adjust downward as expected attendance falls.
+    &nbsp;·&nbsp; <strong>CPI ceiling:</strong> This is the market constraint — it caps how far above competitor prices PRISM will go.
+    Lower it and watch bars to the right of the ceiling go grey (infeasible), forcing the optimiser to select a lower price.
+    The <strong>highlighted purple bar</strong> is always the Stage 2 solution — the revenue-maximising price that satisfies all constraints simultaneously.
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="control-panel">
+        <div class="ctrl-section-title">Stage 1 Inputs — Demand Signal</div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-label">TDEI score (temporal demand) <span class="ctrl-val" id="o-tdei">0.72</span></div>
+          <input type="range" id="s-tdei" min="0" max="100" value="72" step="1" oninput="renderOpt()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">WAAP score (attendance probability) <span class="ctrl-val" id="o-waap">0.80</span></div>
+          <input type="range" id="s-waap" min="0" max="100" value="80" step="1" oninput="renderOpt()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">CPI ceiling — max above competitor market <span class="ctrl-val" id="o-cpi">+30%</span></div>
+          <input type="range" id="s-cpi" min="5" max="45" value="30" step="1" oninput="renderOpt()">
+        </div>
+
+        <div class="ctrl-section-title" style="margin-top:18px">Stage 2 Output — Optimal Price Vector</div>
+        <div class="price-out-grid">
+          <div class="price-out-card"><div class="price-out-seg">Base p*</div><div class="price-out-val" id="o-base" style="color:var(--purple)">—</div></div>
+          <div class="price-out-card"><div class="price-out-seg">Pilgrim</div><div class="price-out-val" id="o-a" style="color:var(--coral)">—</div></div>
+          <div class="price-out-card"><div class="price-out-seg">Planner</div><div class="price-out-val" id="o-b" style="color:var(--purple)">—</div></div>
+          <div class="price-out-card"><div class="price-out-seg">Opportunist</div><div class="price-out-val" id="o-c" style="color:var(--blue)">—</div></div>
+        </div>
+
+        <div class="interp-box" id="o-interp">Adjust inputs to see optimiser interpretation.</div>
+
+        <div class="formula-box" style="font-size:10.5px; margin-top:16px">
+<span class="hi">max</span> Σₜ Σₖ <span class="hi">p(t,k) · Q(t,k,p)</span>
+     + s(t,k) · SecondarySpend(k)
+
+<span class="dim">Subject to:</span>
+  <span class="hi">CPI_min ≤ p/P̄_comp ≤ CPI_max</span>   <span class="dim">← market constraint</span>
+  Σ Q(t,k,p) ≤ Capacity(t)         <span class="dim">← capacity</span>
+  Queue(t) ≤ MaxQueue               <span class="dim">← experience</span>
+  |Δp| ≤ Δp_max                     <span class="dim">← price stability</span>
+  <span class="hi">FairnessRatio(k) ≤ θ = 2.5</span>    <span class="dim">← fairness guardrail</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="chart-card">
+        <div class="chart-card-head">
+          <div class="chart-card-title">Revenue surface — total RevPAX (¥000s) vs base price</div>
+          <div class="chart-card-hint">Purple bar = Stage 2 optimum · grey bars = CPI-constrained (infeasible)</div>
+        </div>
+        <canvas id="optC" height="360"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCRIPTS ────────────────────────────────────────────────── -->
+<script>
+const $ = id => document.getElementById(id);
+const sig = x => 1 / (1 + Math.exp(-x));
+const gc = 'rgba(0,0,0,0.06)';
+
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.font.size = 11.5;
+Chart.defaults.color = '#6A7A8A';
+
+/* ── TAB SWITCHING ─────────────────────────────────────────── */
+function go(id, btn) {
+  ['tdei','waap','vspss','opt'].forEach(p => $('p-'+p).classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('on'));
+  $('p-'+id).classList.add('on');
+  btn.classList.add('on');
+  if (id === 'vspss' && !vspssBuilt) buildVSPSS();
+  if (id === 'opt'   && !optBuilt)   buildOpt();
+}
+
+/* ── TDEI ──────────────────────────────────────────────────── */
+let tdeiChart = null;
+
+function scoreTDEI(wk, a1, d, lam) {
+  const ann = a1 * Math.cos(2*Math.PI*wk/52 - 1.2)
+            + 0.16 * Math.cos(4*Math.PI*wk/52)
+            + 0.08 * Math.cos(8*Math.PI*wk/52 + 0.5);
+  const hol = [1,15,26,32,40,52].reduce((s,h) => s + d * Math.exp(-lam * Math.abs(wk-h)), 0);
+  return Math.min(1, Math.max(0, parseFloat((0.5 + ann + hol).toFixed(3))));
+}
+
+function renderTDEI() {
+  const a1  = $('s-a1').value / 100;
+  const d   = $('s-d').value  / 100;
+  const lam = $('s-l').value  / 100;
+
+  $('t-a1').textContent = a1.toFixed(2);
+  $('t-d').textContent  = d.toFixed(2);
+  $('t-l').textContent  = lam.toFixed(2);
+
+  const scores = Array.from({length:52}, (_,i) => scoreTDEI(i+1, a1, d, lam));
+  const peak   = Math.max(...scores).toFixed(2);
+  const trough = Math.min(...scores).toFixed(2);
+  const surge  = scores.filter(s => s > 0.75).length;
+  const stim   = scores.filter(s => s < 0.35).length;
+
+  $('t-peak').textContent   = peak;
+  $('t-trough').textContent = trough;
+  $('t-surge').textContent  = surge;
+  $('t-stim').textContent   = stim;
+
+  const interp = surge > 18
+    ? `<strong>${surge} weeks in surge mode</strong> — strong holiday-driven seasonality. PRISM operates in premium pricing for nearly half the calendar year.`
+    : stim > 10
+    ? `Only <strong>${surge} surge weeks</strong> and <strong>${stim} stimulation weeks</strong>. Weak temporal signal — WAAP and VSPSS carry proportionally more weight in this park's model.`
+    : `<strong>${surge} surge</strong> · <strong>${stim} stimulation</strong> weeks. Balanced seasonal profile — dynamic pricing is justified year-round without a single dominant period.`;
+  $('t-interp').innerHTML = interp;
+
+  const labels = Array.from({length:52}, (_,i) => 'W'+(i+1));
+  if (!tdeiChart) {
+    tdeiChart = new Chart($('tdeiC'), {
+      type: 'line',
+      data: { labels, datasets: [
+        { label:'TDEI score',          data: scores,         borderColor:'#4A3E9A', backgroundColor:'rgba(74,62,154,0.07)', borderWidth:2.5, pointRadius:0, fill:true,  tension:0.4 },
+        { label:'Surge threshold 0.75',data: Array(52).fill(0.75), borderColor:'#B8901E', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false },
+        { label:'Stim threshold 0.35', data: Array(52).fill(0.35), borderColor:'#1A7A72', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false },
+      ]},
+      options: { responsive:true, interaction:{mode:'index',intersect:false},
+        plugins:{ legend:{ labels:{ boxWidth:12, padding:14 } } },
+        scales:{
+          x:{ ticks:{ maxTicksLimit:13 }, grid:{ color:gc } },
+          y:{ min:0, max:1.05, grid:{ color:gc }, title:{ display:true, text:'TDEI score (0 – 1)', font:{size:11} }, ticks:{ stepSize:0.25 } }
+        }
+      }
+    });
+  } else {
+    tdeiChart.data.datasets[0].data = scores;
+    tdeiChart.update('none');
+  }
+}
+renderTDEI();
+
+/* ── WAAP ──────────────────────────────────────────────────── */
+let waapChart = null;
+
+function renderWAAP() {
+  const r = +$('s-r').value;
+  const t = +$('s-t').value;
+  const o = $('s-o').value / 100;
+
+  $('w-r').textContent = r + '%';
+  $('w-t').textContent = (t >= 0 ? '+' : '') + t + '°C';
+  $('w-o').textContent = Math.round($('s-o').value) + '%';
+
+  const score  = sig(1.2 - 0.025*r - 0.08*t - 0.015*r*o);
+  const noshow = 1 - score;
+  $('w-score').textContent  = score.toFixed(2);
+  $('w-noshow').textContent = Math.round(noshow * 100) + '%';
+
+  let mode;
+  if      (score > 0.80) mode = 'Standard pricing. No weather intervention needed.';
+  else if (score > 0.60) mode = 'Soft bundle nudge. Indoor Priority Pass added to ticket bundle at no extra cost to reduce no-show probability.';
+  else if (score > 0.40) mode = 'Rainy Day Bundle activated — entry discounted ~15% + Indoor Priority Pass. Historical conversion on similar days: 34% of pre-booked holders upgrade.';
+  else                   mode = 'Major stimulation bundle. Push notification to all pre-booked visitors with 0-penalty rebooking offer.';
+  $('w-interp').innerHTML = `<strong>P(attend) = ${score.toFixed(2)}</strong> &nbsp;→&nbsp; ${mode}`;
+
+  const xs = Array.from({length:11}, (_,i) => i*10);
+  const fracs = [0.85, 0.55, 0.30, o];
+  const cols  = ['#B03A2E','#4A3E9A','#1A5FA8','#1A7A72'];
+  const names = ['85% outdoor','55% outdoor','30% outdoor', `This park (${Math.round($('s-o').value)}% outdoor)`];
+  const dashes = [[], [], [], [7,4]];
+  const widths = [1.5, 1.5, 1.5, 2.5];
+
+  const datasets = fracs.map((f,i) => ({
+    label:       names[i],
+    data:        xs.map(rx => Math.round(sig(1.2 - 0.025*rx - 0.08*t - 0.015*rx*f) * 100)),
+    borderColor: cols[i],
+    borderWidth: widths[i],
+    borderDash:  dashes[i],
+    pointRadius: i === 3 ? 3 : 0,
+    pointBackgroundColor: cols[i],
+    fill: false,
+    tension: 0.4
+  }));
+
+  if (!waapChart) {
+    waapChart = new Chart($('waapC'), {
+      type: 'line',
+      data: { labels: xs.map(x => x + '%'), datasets },
+      options: { responsive:true, interaction:{mode:'index',intersect:false},
+        plugins:{ legend:{ labels:{ boxWidth:12, padding:14 } } },
+        scales:{
+          x:{ title:{ display:true, text:'Rain forecast probability' }, grid:{ color:gc } },
+          y:{ min:0, max:100, ticks:{ callback: v => v+'%' }, title:{ display:true, text:'P(attend)' }, grid:{ color:gc } }
+        }
+      }
+    });
+  } else {
+    waapChart.data.datasets = datasets;
+    waapChart.update('none');
+  }
+}
+renderWAAP();
+['s-r','s-t','s-o'].forEach(id => $(id).addEventListener('input', renderWAAP));
+
+/* ── VSPSS ─────────────────────────────────────────────────── */
+let vspssBuilt = false;
+
+function buildVSPSS() {
+  const MC = 25;
+  const segs = [
+    { eps:-0.4,  alpha:4200,  col:'#B03A2E', pStarId:'ps-a' },
+    { eps:-0.9,  alpha:9800,  col:'#4A3E9A', pStarId:'ps-b' },
+    { eps:-1.6,  alpha:18000, col:'#1A5FA8', pStarId:'ps-c' },
+    { eps:-2.1,  alpha:28000, col:'#1A7A40', pStarId:'ps-d' },
+  ];
+  const names = ['Pilgrim (ε=−0.4)', 'Planner (ε=−0.9)', 'Opportunist (ε=−1.6)', 'Impulse Group (ε=−2.1)'];
+  const prices = Array.from({length:26}, (_,i) => 80 + i*14);
+
+  segs.forEach((s,i) => {
+    const pstar = Math.round(s.eps * MC / (s.eps + 1) * -1);
+    $(s.pStarId).textContent = '¥' + pstar;
+  });
+
+  new Chart($('demC'), {
+    type: 'line',
+    data: {
+      labels: prices.map(p => '¥'+p),
+      datasets: segs.map((s,i) => ({
+        label: names[i],
+        data:  prices.map(p => Math.max(0, Math.round(s.alpha * Math.pow(p/200, s.eps)))),
+        borderColor: s.col, borderWidth:2, pointRadius:0, fill:false, tension:0.3
+      }))
+    },
+    options: { responsive:true,
+      plugins:{ legend:{ labels:{ boxWidth:12, padding:12 } } },
+      scales:{
+        x:{ ticks:{ maxTicksLimit:10 }, grid:{ color:gc }, title:{ display:true, text:'Ticket price' } },
+        y:{ grid:{ color:gc }, title:{ display:true, text:'Quantity demanded' } }
+      }
+    }
+  });
+
+  new Chart($('revSegC'), {
+    type: 'line',
+    data: {
+      labels: prices.map(p => '¥'+p),
+      datasets: segs.map((s,i) => ({
+        label: names[i],
+        data:  prices.map(p => Math.round(p * Math.max(0, s.alpha * Math.pow(p/200, s.eps)) / 1000)),
+        borderColor: s.col, borderWidth:2, pointRadius:0, fill:false, tension:0.3
+      }))
+    },
+    options: { responsive:true,
+      plugins:{ legend:{ labels:{ boxWidth:12, padding:12 } } },
+      scales:{
+        x:{ ticks:{ maxTicksLimit:10 }, grid:{ color:gc }, title:{ display:true, text:'Ticket price' } },
+        y:{ grid:{ color:gc }, title:{ display:true, text:'Revenue (¥ thousands)' } }
+      }
+    }
+  });
+
+  vspssBuilt = true;
+}
+
+/* ── OPTIMISER ─────────────────────────────────────────────── */
+let optBuilt = false, optChart = null;
+
+function buildOpt() { renderOpt(); optBuilt = true; }
+
+function renderOpt() {
+  const tdei   = $('s-tdei').value / 100;
+  const waap   = $('s-waap').value / 100;
+  const cpiMax = +$('s-cpi').value;
+
+  $('o-tdei').textContent = tdei.toFixed(2);
+  $('o-waap').textContent = waap.toFixed(2);
+  $('o-cpi').textContent  = '+' + cpiMax + '%';
+
+  const ceiling = Math.round(250 * (1 + cpiMax/100));
+  const base    = Math.round(Math.min(160 + tdei*180*waap, ceiling));
+  $('o-base').textContent = '¥' + base;
+  $('o-a').textContent    = '¥' + Math.min(Math.round(base*(1 + 0.32*tdei)), Math.round(ceiling*1.32));
+  $('o-b').textContent    = '¥' + Math.min(Math.round(base*(1 + 0.12*tdei)), Math.round(ceiling*1.12));
+  $('o-c').textContent    = '¥' + Math.round(base*(1 - 0.14*(1 - waap + 0.1)));
+
+  const regime   = tdei > 0.75 ? 'SURGE ACTIVE' : tdei > 0.42 ? 'Standard dynamic pricing' : 'STIMULATION MODE';
+  const waapNote = waap < 0.6 ? ' Rainy Day Bundle triggered — product mix shifted to indoor attractions.' : '';
+  $('o-interp').innerHTML = `<strong>${regime}</strong> · TDEI ${tdei.toFixed(2)} · WAAP ${waap.toFixed(2)} · CPI ceiling +${cpiMax}%.${waapNote} Revenue-maximising base price: <strong>¥${base}</strong>.`;
+
+  const prices = Array.from({length:20}, (_,i) => 120 + i*18);
+
+  function totalRev(p) {
+    if (p > ceiling) return 0;
+    const N = Math.pow(200, 1);
+    const qA = 800  * Math.pow(p*(1/(1+0.32*tdei)), -0.4) * Math.pow(200, 0.4);
+    const qB = 2200 * Math.pow(p*(1/(1+0.12*tdei)), -0.9) * Math.pow(200, 0.9);
+    const qC = 3000 * Math.pow(p*(1/(1-0.14*(1-waap+0.1))), -1.6) * Math.pow(200, 1.6);
+    return Math.round((p*(1+0.32*tdei)*qA + p*(1+0.12*tdei)*qB + p*(1-0.14*(1-waap+0.1))*qC + qA*180 + qB*120 + qC*80) / 1000);
+  }
+
+  const revs    = prices.map(totalRev);
+  const validR  = prices.map((p,i) => p <= ceiling ? revs[i] : -1);
+  const mi      = validR.indexOf(Math.max(...validR));
+
+  const bgColors = prices.map((p,i) => {
+    if (p > ceiling) return 'rgba(180,180,180,0.2)';
+    if (i === mi)    return 'rgba(74,62,154,0.78)';
+    return 'rgba(74,62,154,0.18)';
+  });
+  const bdColors = prices.map((p,i) => {
+    if (p > ceiling) return 'rgba(180,180,180,0.35)';
+    if (i === mi)    return '#4A3E9A';
+    return 'rgba(74,62,154,0.4)';
+  });
+
+  if (!optChart) {
+    optChart = new Chart($('optC'), {
+      type: 'bar',
+      data: {
+        labels: prices.map(p => '¥'+p),
+        datasets: [{ label:'Total RevPAX (¥ thousands)', data:revs, backgroundColor:bgColors, borderColor:bdColors, borderWidth:0.5 }]
+      },
+      options: { responsive:true,
+        plugins:{ legend:{ labels:{ boxWidth:12 } } },
+        scales:{
+          x:{ ticks:{ maxRotation:35, font:{size:10.5} }, grid:{ color:gc } },
+          y:{ grid:{ color:gc }, title:{ display:true, text:'Revenue (¥ thousands)' } }
+        }
+      }
+    });
+  } else {
+    optChart.data.datasets[0].data            = revs;
+    optChart.data.datasets[0].backgroundColor = bgColors;
+    optChart.data.datasets[0].borderColor     = bdColors;
+    optChart.update('none');
+  }
+}
+['s-tdei','s-waap','s-cpi'].forEach(id => $(id).addEventListener('input', renderOpt));
+</script>
+</body>
+</html>
